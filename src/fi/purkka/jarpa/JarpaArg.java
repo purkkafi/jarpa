@@ -4,10 +4,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import fi.purkka.jarpa.ValueParser.SingleValue;
+import fi.purkka.jarpa.ValueParser.SingleValueParser;
 
 /** Represents a single argument that may optionally have some
  * <i>values</i> associated with it.
+ * 
+ * <p>Instances can be created with the static methods of this
+ * class. They all take a string representing the argument:</p>
+ * 
+ * <p>{@code JarpaArg<Integer> arg = JarpaArg.integer("-i");}</p>
+ * 
+ * <p>Arguments may be modified by calling their chainable methods.
+ * {@link JarpaArg#alias(String)} may be called to add an <i>alias</i>,
+ * which may be used to represent the argument instead of the originally
+ * given value.</p>
+ * 
+ * <p>{@code JarpaArg<Boolean> arg = JarpaArg.flag("--verbose").alias("-v");}</p>
+ * 
+ * <p>A <i>flag</i> (returned by {@link JarpaArg#flag()}) has a
+ * {@code boolean} value that represents whether it is present.</p>
+ * 
+ * <p>{@link JarpaArg#optional()} may be called to make an argument optional.
+ * In that case, leaving it missing causes no error; also, its type changes
+ * from {@code T} to {@code Optional<T>}.</p>
+ * 
+ * <p>{@code JarpaArg<Optional<String>> optional = JarpaArg.string("-s").optional();}</p>
+ * 
  * @param <T> The type of value this argument represents*/
 public abstract class JarpaArg<T> {
 	
@@ -28,11 +50,16 @@ public abstract class JarpaArg<T> {
 		return aliases.get(0);
 	}
 	
+	/** Gives this argument an <i>alias</i> which may be used to
+	 * refer to it instead of the originally given value.*/
 	public JarpaArg<T> alias(String alias) {
 		aliases.add(alias);
 		return this;
 	}
 	
+	/** A convenience method for giving multiple aliases at the
+	 * same time.
+	 * @see JarpaArg#alias(String)*/
 	public JarpaArg<T> aliases(String...aliases) {
 		for(String alias : aliases) {
 			this.aliases.add(alias);
@@ -40,6 +67,8 @@ public abstract class JarpaArg<T> {
 		return this;
 	}
 	
+	/** Makes this argument <i>optional</i>, meaning that leaving it
+	 * missing causes no error.*/
 	public JarpaArg<Optional<T>> optional() {
 		return new OptionalArg<>(aliases, valParser);
 	}
@@ -73,7 +102,21 @@ public abstract class JarpaArg<T> {
 		return withSingleValue(arg, Double::parseDouble);
 	}
 	
-	private static <T> SimpleArg<T> withSingleValue(String arg, SingleValue<T> parser) {
+	/** Returns an argument with a value of some arbitrary type. The
+	 * given {@code ValueParser} is used to construct the object.
+	 * @see JarpaArg#object(String, SingleValueParser)*/
+	public static <T> JarpaArg<T> object(String arg, ValueParser<T> parser) {
+		return new SimpleArg<>(arg, parser);
+	}
+	
+	/** Returns an argument with a single value of some arbitrary type.
+	 * The given {@code SingleValueParser} is used to construct the object.
+	 * @see JarpaArg#object(String, ValueParser)*/
+	public static <T> JarpaArg<T> object(String arg, SingleValueParser<T> parser) {
+		return withSingleValue(arg, parser);
+	}
+	
+	private static <T> SimpleArg<T> withSingleValue(String arg, SingleValueParser<T> parser) {
 		return new SimpleArg<>(arg, parser);
 	}
 	

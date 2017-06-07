@@ -10,7 +10,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /** Contains parsed arguments. The {@code default arguments}
- * (before any switch) are denoted by the empty switch string {@code ""}.*/
+ * (before any switch) are denoted by the empty switch string {@code ""}.
+ * 
+ * <p>{@link JarpaArgs#finish()} should be called at the end of argument processing
+ * to make sure that unknown arguments raise a {@link JarpaException}.</p>*/
 public class JarpaArgs {
 	
 	private final static String[] EMPTY_ARRAY = new String[0];

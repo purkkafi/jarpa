@@ -34,7 +34,8 @@ public class JarpaException extends RuntimeException {
 	/** Indicates that multiple values were given to an argument
 	 * expecting a single one.*/
 	public static JarpaException singleValueExpected(String[] given) {
-		return new JarpaException(Type.SINGLE_VALUE_EXPECTED,
+		return new JarpaException(Type.SINGLE_VALUE_EXPECTED, given.length == 0 ?
+				"Expected single value, given nothing" :
 				"Expected single value, given " + Arrays.stream(given)
 				.collect(Collectors.joining(", ")));
 	}

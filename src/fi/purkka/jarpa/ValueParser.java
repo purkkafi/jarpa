@@ -8,7 +8,7 @@ public interface ValueParser<T> {
 	
 	/** A special case of {@code ValueParser} that only accepts a
 	 * single string as its input.*/
-	public static interface SingleValue<T> extends ValueParser<T> {
+	public static interface SingleValueParser<T> extends ValueParser<T> {
 		
 		@Override
 		public default T apply(String[] args) {

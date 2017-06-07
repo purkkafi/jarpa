@@ -48,7 +48,7 @@ public final class JarpaParser {
 		if(index >= args.length) { return new String[0]; }
 		int start = index;
 		
-		while(!isArgument(args[index])) {
+		while(index < args.length && !isArgument(args[index])) {
 			index++;
 		}
 		
@@ -60,6 +60,9 @@ public final class JarpaParser {
 	}
 	
 	private static boolean isArgument(String str) {
-		return str.startsWith("-");
+		if(str.length() < 2) return false;
+		char first = str.charAt(0);
+		char second = str.charAt(1);
+		return first == '-' && (Character.isLetter(second) || second == '-');
 	}
 }
