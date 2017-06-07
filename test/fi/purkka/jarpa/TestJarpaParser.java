@@ -110,4 +110,15 @@ public class TestJarpaParser {
 		assertThat(args.get(decimal("-f")), is(-5.46));
 		args.finish();
 	}
+	
+	@Test
+	public void testOwnExceptionOnParseError() {
+		try {
+			JarpaArgs args = jargs("--int 646d");
+			args.get(integer("--int"));
+			args.finish();
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.PARSE_EXCEPTION));
+		}
+	}
 }

@@ -53,11 +53,19 @@ public class JarpaException extends RuntimeException {
 				Arrays.stream(args).collect(Collectors.joining(", ")));
 	}
 	
+	/** Indicates that an exception occurred while parsing values.*/
+	public static JarpaException parseException(Throwable t) {
+		return new JarpaException(Type.PARSE_EXCEPTION, "Parse exception: "
+				+ t.getClass().getSimpleName()
+				+ ": " + t.getMessage());
+	}
+	
 	static enum Type {
 		MULTIPLE_ALIASES_PRESENT,
 		FLAG_GIVEN_VALUES,
 		SINGLE_VALUE_EXPECTED,
 		MANDATORY_ARG_NOT_SPECIFIED,
-		UNKNOWN_ARGUMENTS
+		UNKNOWN_ARGUMENTS,
+		PARSE_EXCEPTION
 	}
 }

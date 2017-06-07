@@ -133,7 +133,13 @@ public abstract class JarpaArg<T> {
 			if(alias == null) {
 				throw JarpaException.mandatoryArgNotSpecified(mainAlias());
 			}
-			return valParser.apply(args.getRaw(alias));
+			try {
+				return valParser.apply(args.getRaw(alias));
+			} catch(JarpaException e) {
+				throw e;
+			} catch(Exception e) {
+				throw JarpaException.parseException(e);
+			}
 		}
 	}
 	
