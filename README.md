@@ -34,7 +34,7 @@ Kind of like flags, *optional arguments* can freely be omitted. They provide acc
 
 *Aliases* can be used to allow the user use shorter or longer versions of arguments as they wish. Only one given alias may be used at the same time; otherwise, an exception is raised.
 
-   boolean verbose = jargs.get(flag("--verbose").alias("-v"));
+    boolean verbose = jargs.get(flag("--verbose").alias("-v"));
 
 Other types of `JarpaArg` can be used if a parse method is provided.
 
@@ -42,8 +42,8 @@ Other types of `JarpaArg` can be used if a parse method is provided.
 
 After the program arguments have been handled, one should call `JarpaArgs.finish()` to make sure that an exception is thrown if unknown, non-retrieved arguments are found.
 
-   jargs.finish();
+    jargs.finish();
 
-##Licence
+## Licence
 
 Jarpa is licenced with the Unlicence.
