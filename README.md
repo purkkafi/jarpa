@@ -1,4 +1,4 @@
-#Jarpa – Java ARguments PArser
+# Jarpa – Java ARguments PArser
 
 A lightweight parser of command line arguments.
 
