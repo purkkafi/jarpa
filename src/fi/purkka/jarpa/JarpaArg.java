@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 import fi.purkka.jarpa.ValueParser.SingleValueParser;
@@ -33,7 +32,7 @@ import fi.purkka.jarpa.ValueParser.SingleValueParser;
  * 
  * <p>{@code JarpaArg<Optional<String>> optional = JarpaArg.string("-s").optional();}</p>
  * 
- * @param <T> The type of value this argument represents*/
+ * @param <T> The type of value this argument represents */
 public abstract class JarpaArg<T> {
 	
 	List<String> aliases = new ArrayList<>();
@@ -54,7 +53,7 @@ public abstract class JarpaArg<T> {
 	}
 	
 	/** Gives this argument an <i>alias</i> which may be used to
-	 * refer to it instead of the originally given value.*/
+	 * refer to it instead of the originally given value. */
 	public JarpaArg<T> alias(String alias) {
 		aliases.add(alias);
 		return this;
@@ -62,7 +61,7 @@ public abstract class JarpaArg<T> {
 	
 	/** A convenience method for giving multiple aliases at the
 	 * same time.
-	 * @see JarpaArg#alias(String)*/
+	 * @see JarpaArg#alias(String) */
 	public JarpaArg<T> aliases(String...aliases) {
 		for(String alias : aliases) {
 			this.aliases.add(alias);
@@ -71,7 +70,7 @@ public abstract class JarpaArg<T> {
 	}
 	
 	/** Makes this argument <i>optional</i>, meaning that leaving it
-	 * missing causes no error.*/
+	 * missing causes no error. */
 	public JarpaArg<Optional<T>> optional() {
 		return new OptionalArg<>(aliases, valParser);
 	}
@@ -80,41 +79,48 @@ public abstract class JarpaArg<T> {
 	
 	/** Returns a <i>flag</i> argument. A flag argument is associated
 	 * with a {@code boolean} value that represents whether
-	 * it is present.*/
+	 * it is present. */
 	public static JarpaArg<Boolean> flag(String arg) {
 		return new Flag(arg);
 	}
 	
-	/** Returns an argument with a single {@code String} value.*/
+	/** Returns an argument with a single {@code String} value. */
 	public static JarpaArg<String> string(String arg) {
 		return withSingleValue(arg, s -> s);
 	}
 	
-	/** Returns an argument with any number of {@code String} value.*/
-	public static JarpaArg<String[]> stringList(String arg) {
+	/** Returns an argument with any number of {@code String} value
+	 * as an array. */
+	public static JarpaArg<String[]> stringArray(String arg) {
 		return new SimpleArg<>(arg, s -> s);
 	}
 	
-	/** Returns an argument with a single {@code int} value.*/
+	/** Returns an argument with any number of {@code String} value
+	 * as a {@code List}. */
+	public static JarpaArg<List<String>> stringList(String arg) {
+		return new SimpleArg<>(arg, Arrays::asList);
+	}
+	
+	/** Returns an argument with a single {@code int} value. */
 	public static JarpaArg<Integer> integer(String arg) {
 		return withSingleValue(arg, Integer::parseInt);
 	}
 	
-	/** Returns an argument with any number of {@code int} values.*/
-	public static JarpaArg<int[]> integerList(String arg) {
+	/** Returns an argument with any number of {@code int} values. */
+	public static JarpaArg<int[]> integerArray(String arg) {
 		return new SimpleArg<>(arg, strings ->
 				Arrays.stream(strings)
 				.mapToInt(Integer::parseInt)
 				.toArray());
 	}
 	
-	/** Returns an argument with a single {@code double} value.*/
+	/** Returns an argument with a single {@code double} value. */
 	public static JarpaArg<Double> decimal(String arg) {
 		return withSingleValue(arg, Double::parseDouble);
 	}
 	
-	/** Returns an argument with any number of {@code double} values.*/
-	public static JarpaArg<double[]> decimalList(String arg) {
+	/** Returns an argument with any number of {@code double} values. */
+	public static JarpaArg<double[]> decimalArray(String arg) {
 		return new SimpleArg<>(arg, strings ->
 				Arrays.stream(strings)
 				.mapToDouble(Double::parseDouble)
@@ -123,14 +129,14 @@ public abstract class JarpaArg<T> {
 	
 	/** Returns an argument with a value of some arbitrary type. The
 	 * given {@code ValueParser} is used to construct the object.
-	 * @see JarpaArg#object(String, SingleValueParser)*/
+	 * @see JarpaArg#object(String, SingleValueParser) */
 	public static <T> JarpaArg<T> object(String arg, ValueParser<T> parser) {
 		return new SimpleArg<>(arg, parser);
 	}
 	
 	/** Returns an argument with a single value of some arbitrary type.
 	 * The given {@code SingleValueParser} is used to construct the object.
-	 * @see JarpaArg#object(String, ValueParser)*/
+	 * @see JarpaArg#object(String, ValueParser) */
 	public static <T> JarpaArg<T> object(String arg, SingleValueParser<T> parser) {
 		return withSingleValue(arg, parser);
 	}
