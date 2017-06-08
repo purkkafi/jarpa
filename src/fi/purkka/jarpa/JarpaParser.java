@@ -32,8 +32,6 @@ public final class JarpaParser {
 		JarpaArgs jargs = new JarpaArgs();
 		if(!isArgument(args[0])) {
 			jargs.values.put("", nextValue());
-		} else {
-			jargs.values.put("", new String[0]);
 		}
 		
 		while(index < args.length) {

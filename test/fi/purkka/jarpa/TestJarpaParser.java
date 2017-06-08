@@ -87,11 +87,20 @@ public class TestJarpaParser {
 	}
 	
 	@Test
+	public void testUnknownDefaultArgumentMessage() {
+		try(JarpaArgs args = jargs("arg")) {	
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
+			assertThat(e.getMessage(), is("Unknown argument [default argument]"));
+		}
+	}
+	
+	@Test
 	public void testParsingDifferentValues() {
 		try(JarpaArgs args = jargs("--int 356 --dec 2.65 --strings a b c")) {
 			assertThat(args.get(integer("--int")), is(356));
 			assertThat(args.get(decimal("--dec")), is(2.65));
-			assertThat(args.get(stringList("--strings")), is(new String[] {"a", "b", "c"}));
+			assertThat(args.get(stringArray("--strings")), is(new String[] {"a", "b", "c"}));
 		}
 	}
 	

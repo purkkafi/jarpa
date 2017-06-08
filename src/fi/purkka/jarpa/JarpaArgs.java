@@ -20,13 +20,10 @@ import java.util.stream.Collectors;
 public class JarpaArgs implements AutoCloseable {
 	
 	private final static String[] EMPTY_ARRAY = new String[0];
+	public final static String DEFAULT_ARGUMENT = "";
 	
 	final Map<String, String[]> values = new HashMap<>();
 	private final Set<String> optionalArgs = new HashSet<>();
-	
-	{
-		optionalArgs.add("");
-	}
 	
 	JarpaArgs() {}
 	
@@ -42,7 +39,11 @@ public class JarpaArgs implements AutoCloseable {
 		List<String> extras = new ArrayList<>();
 		for(String arg : values.keySet()) {
 			if(!optionalArgs.contains(arg)) {
-				extras.add(arg);
+				if(arg.equals(DEFAULT_ARGUMENT)) {
+					extras.add("[default argument]");
+				} else {
+					extras.add(arg);
+				}
 			}
 		}
 		
