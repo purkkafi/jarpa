@@ -1,6 +1,7 @@
 package fi.purkka.jarpa;
 
 import static fi.purkka.jarpa.JarpaArg.*;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -130,5 +131,34 @@ public class TestJarpaParser {
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
 		}
+	}
+	
+	@Test
+	public void testObjectList() {
+		try(JarpaArgs args = jargs("--list 1 2 3")) {
+			assertThat(args.get(objectList("--list", Dummy::parse)),
+					hasItems(new Dummy(1), new Dummy(2), new Dummy(3)));
+		}
+	}
+	
+	private static class Dummy {
+		
+		Dummy(int val) {
+			value = val;
+		}
+		
+		private int value;
+		
+		static Dummy parse(String value) {
+			return new Dummy(Integer.parseInt(value));
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			return ((Dummy) o).value == value;
+		}
+		
+		@Override
+		public int hashCode() { return 1; }
 	}
 }

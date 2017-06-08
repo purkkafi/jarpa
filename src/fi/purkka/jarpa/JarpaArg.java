@@ -1,8 +1,11 @@
 package fi.purkka.jarpa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
 import fi.purkka.jarpa.ValueParser.SingleValueParser;
 
@@ -89,7 +92,7 @@ public abstract class JarpaArg<T> {
 	
 	/** Returns an argument with any number of {@code String} value.*/
 	public static JarpaArg<String[]> stringList(String arg) {
-		return new SimpleArg<>(arg, s->s);
+		return new SimpleArg<>(arg, s -> s);
 	}
 	
 	/** Returns an argument with a single {@code int} value.*/
@@ -97,9 +100,25 @@ public abstract class JarpaArg<T> {
 		return withSingleValue(arg, Integer::parseInt);
 	}
 	
+	/** Returns an argument with any number of {@code int} values.*/
+	public static JarpaArg<int[]> integerList(String arg) {
+		return new SimpleArg<>(arg, strings ->
+				Arrays.stream(strings)
+				.mapToInt(Integer::parseInt)
+				.toArray());
+	}
+	
 	/** Returns an argument with a single {@code double} value.*/
 	public static JarpaArg<Double> decimal(String arg) {
 		return withSingleValue(arg, Double::parseDouble);
+	}
+	
+	/** Returns an argument with any number of {@code double} values.*/
+	public static JarpaArg<double[]> decimalList(String arg) {
+		return new SimpleArg<>(arg, strings ->
+				Arrays.stream(strings)
+				.mapToDouble(Double::parseDouble)
+				.toArray());
 	}
 	
 	/** Returns an argument with a value of some arbitrary type. The
@@ -114,6 +133,15 @@ public abstract class JarpaArg<T> {
 	 * @see JarpaArg#object(String, ValueParser)*/
 	public static <T> JarpaArg<T> object(String arg, SingleValueParser<T> parser) {
 		return withSingleValue(arg, parser);
+	}
+	
+	/** Returns an argument with any number of values of some arbitrary type.
+	 * The given {@code SingleValueParser} is used to construct the objects. */
+	public static <T> JarpaArg<List<T>> objectList(String arg, SingleValueParser<T> parser) {
+		return new SimpleArg<>(arg, strings ->
+				Arrays.stream(strings)
+				.map(parser::apply)
+				.collect(Collectors.toList()));
 	}
 	
 	private static <T> SimpleArg<T> withSingleValue(String arg, SingleValueParser<T> parser) {
