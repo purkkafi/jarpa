@@ -13,9 +13,13 @@ A lightweight parser of command line arguments.
 
 Note that the following examples use the static import `fi.purkka.jarpa.JarpaArg.*` to make the code shorter.
 
-Everything begins by obtaining a `JarpaArgs` instance; `args` is of type `String[]`.
+Everything begins by obtaining a `JarpaArgs` instance; `args` is of type `String[]`. `JarpaArgs` implements `AutoCloseable` to permit use in try-catch blocks; the `close()` method calls `finish()` which makes sure that the user hasn't entered any unknown arguments.
 
-    JarpaArgs jargs = JarpaParser.parse(args);
+    try(JarpaArgs jargs = JarpaParser.parse(args)) {
+        // code
+    } catch(JarpaException e) {
+        // handle errors
+    }
 
 `JarpaArgs` has a `get()` method that takes a `JarpaArg`. The static methods of `JarpaArg` provide facilities for obtaining values of different types.
 
@@ -39,10 +43,6 @@ Kind of like flags, *optional arguments* can freely be omitted. They provide acc
 Other types of `JarpaArg` can be used if a parse method is provided.
 
     MyClass myClass = jargs.get(object("--myclass", MyClass::parse));
-
-After the program arguments have been handled, one should call `JarpaArgs.finish()` to make sure that an exception is thrown if unknown, non-retrieved arguments are found.
-
-    jargs.finish();
 
 ## Licence
 

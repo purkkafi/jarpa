@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import fi.purkka.jarpa.JarpaException.Type;
 
+@SuppressWarnings("resource")
 public class TestJarpaParser {
 	
 	private static JarpaArgs jargs(String args) {
@@ -119,6 +120,15 @@ public class TestJarpaParser {
 			args.finish();
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.PARSE_EXCEPTION));
+		}
+	}
+	
+	@Test
+	public void testAutoCloseableOnJarpaArgs() {
+		try(JarpaArgs args = jargs("-a -b")) {
+			args.get(flag("-a"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
 		}
 	}
 }

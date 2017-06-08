@@ -13,8 +13,11 @@ import java.util.stream.Collectors;
  * (before any switch) are denoted by the empty switch string {@code ""}.
  * 
  * <p>{@link JarpaArgs#finish()} should be called at the end of argument processing
- * to make sure that unknown arguments raise a {@link JarpaException}.</p>*/
-public class JarpaArgs {
+ * to make sure that unknown arguments raise a {@link JarpaException}.</p>
+ * 
+ * <p>This class implements {@link AutoCloseable} and calls {@link JarpaArgs#finish()}
+ * in its {@code close()} method to permit use in try-catch blocks.</p> */
+public class JarpaArgs implements AutoCloseable {
 	
 	private final static String[] EMPTY_ARRAY = new String[0];
 	
@@ -28,13 +31,13 @@ public class JarpaArgs {
 	JarpaArgs() {}
 	
 	/** Returns the value given for an argument according
-	 * to its parameters.*/
+	 * to its parameters. */
 	public <T> T get(JarpaArg<T> arg) {
 		return arg.retrieve(this);
 	}
 	
 	/** Verifies that no arguments were specified that weren't
-	 * retrieved.*/
+	 * retrieved. */
 	public void finish() {
 		List<String> extras = new ArrayList<>();
 		for(String arg : values.keySet()) {
@@ -47,6 +50,13 @@ public class JarpaArgs {
 			throw JarpaException.unknownArguments(
 					extras.toArray(new String[extras.size()]));
 		}
+	}
+	
+	/** Calls {@link JarpaArgs#finish()} to allow use in
+	 * try-catch blocks. */
+	@Override
+	public void close() {
+		finish();
 	}
 	
 	String[] getRaw(String arg) {
