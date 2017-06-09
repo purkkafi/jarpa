@@ -75,12 +75,12 @@ public abstract class JarpaArg<T> {
 		return new OptionalArg<>(aliases, valParser);
 	}
 	
-	public abstract T retrieve(JarpaArgs args);
+	abstract T retrieve(JarpaArgs args);
 	
 	/** Returns a <i>flag</i> argument. A flag argument is associated
 	 * with a {@code boolean} value that represents whether
 	 * it is present. */
-	public static JarpaArg<Boolean> flag(String arg) {
+	public static Flag flag(String arg) {
 		return new Flag(arg);
 	}
 	
@@ -177,21 +177,64 @@ public abstract class JarpaArg<T> {
 		}
 	}
 	
-	private static class Flag extends JarpaArg<Boolean> {
+	/** Represents a <i>flag argument</i> which has a boolean value
+	 * based on whether it is present. */
+	public static class Flag extends JarpaArg<Boolean> {
+		
+		private List<String> negators = new ArrayList<>();
 		
 		private Flag(String arg) {
 			super(arg, v -> { throw new AssertionError("Flag cannot have values"); });
 		}
+		
+		@Override
+		public Flag alias(String alias) {
+			return (Flag) super.alias(alias);
+		}
+		
+		@Override
+		public Flag aliases(String...aliases) {
+			return (Flag) super.aliases(aliases);
+		}
+		
+		/** Adds a <i>negator</i> that, if present, makes the value
+		 * of this flag be {@code false}. */
+		public Flag negator(String negator) {
+			negators.add(negator);
+			return this;
+		}
+		
+		/** Adds multiple negators.
+		 * @see Flag#negator(String) */
+		public Flag negators(String...negators) {
+			for(String neg : negators) this.negators.add(neg);
+			return this;
+		}
 
 		@Override
-		public Boolean retrieve(JarpaArgs args) {
+		Boolean retrieve(JarpaArgs args) {
 			args.addOptionalArgs(aliases);
+			args.addOptionalArgs(negators);
 			String alias = args.usedAlias(aliases);
-			if(alias == null) return false;
-			if(args.getRaw(alias).length != 0) {
-				throw JarpaException.flagGivenValues(alias);
+			String negator = args.usedAlias(negators);
+			
+			if(alias == null && negator == null) return false;
+			if(alias != null && negator != null) {
+				throw JarpaException.flagAndNegatorPresent(alias, negator);
 			}
-			return true;
+			
+			if(alias != null) {
+				if(args.getRaw(alias).length != 0) {
+					throw JarpaException.flagGivenValues(alias);
+				}
+				return true;
+			}
+			
+			if(args.getRaw(negator).length != 0) {
+				throw JarpaException.flagGivenValues(negator);
+			}
+			
+			return false;
 		}
 	}
 	
@@ -202,7 +245,7 @@ public abstract class JarpaArg<T> {
 		}
 
 		@Override
-		public Optional<T> retrieve(JarpaArgs args) {
+		Optional<T> retrieve(JarpaArgs args) {
 			args.addOptionalArgs(aliases);
 			String alias = args.usedAlias(aliases);
 			if(alias != null) {

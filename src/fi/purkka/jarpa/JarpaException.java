@@ -60,12 +60,18 @@ public class JarpaException extends RuntimeException {
 				+ ": " + t.getMessage());
 	}
 	
+	public static JarpaException flagAndNegatorPresent(String flag, String negator) {
+		return new JarpaException(Type.FLAG_AND_NEGATOR_PRESENT, "Both flag "
+				+ flag + " and its negator " + negator + " are present");
+	}
+	
 	static enum Type {
 		MULTIPLE_ALIASES_PRESENT,
 		FLAG_GIVEN_VALUES,
 		SINGLE_VALUE_EXPECTED,
 		MANDATORY_ARG_NOT_SPECIFIED,
 		UNKNOWN_ARGUMENTS,
+		FLAG_AND_NEGATOR_PRESENT,
 		PARSE_EXCEPTION
 	}
 }

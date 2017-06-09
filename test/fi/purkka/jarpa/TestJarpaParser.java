@@ -220,6 +220,22 @@ public class TestJarpaParser {
 		}
 	}
 	
+	@Test
+	public void testNegators() {
+		try(JarpaArgs args = spaced("-n")) {
+			assertThat(args.get(flag("-y").negator("-n")), is(false));
+		}
+	}
+	
+	@Test
+	public void testExceptionOnFlagAndNegator() {
+		try(JarpaArgs args = spaced("-y -n")) {
+			args.get(flag("--yes").alias("-y").negators("--no", "-n"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.FLAG_AND_NEGATOR_PRESENT));
+		}
+	}
+	
 	private static class Dummy {
 		
 		Dummy(int val) {
