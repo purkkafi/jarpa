@@ -14,18 +14,29 @@ import fi.purkka.jarpa.JarpaException.Type;
 
 public class TestJarpaParser {
 	
-	private static JarpaArgs jargs(String args) {
-		return JarpaParser.parse(args.split(" "));
+	private static JarpaArgs spaced(String args) {
+		return JarpaParser.parsing(args.split(" ")).parse();
+	}
+	
+	private static JarpaArgs equals(String args) {
+		return JarpaParser.parsing(args.split(" "))
+				.equalsSeparated().parse();
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void testNPEOnNullInput() {
-		jargs(null);
+		spaced(null);
+		equals(null);
 	}
 	
 	@Test
 	public void testFlags() {
-		try(JarpaArgs args = jargs("-a")) {
+		try(JarpaArgs args = spaced("-a")) {
+			assertTrue(args.get(flag("-a")));
+			assertFalse(args.get(flag("-d")));
+		}
+		
+		try(JarpaArgs args = equals("-a")) {
 			assertTrue(args.get(flag("-a")));
 			assertFalse(args.get(flag("-d")));
 		}
@@ -33,7 +44,13 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testErrorOnFlagWithArguments() {
-		try(JarpaArgs args = jargs("-a 5")) {
+		try(JarpaArgs args = spaced("-a 5")) {
+			args.get(flag("-a"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.FLAG_GIVEN_VALUES));
+		}
+		
+		try(JarpaArgs args = equals("-a=5")) {
 			args.get(flag("-a"));
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.FLAG_GIVEN_VALUES));
@@ -42,14 +59,24 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testAliases() {
-		try(JarpaArgs args = jargs("--foo bar")) {
+		try(JarpaArgs args = spaced("--foo bar")) {
+			assertThat(args.get(JarpaArg.string("-f").alias("--foo")), is("bar"));
+		}
+		
+		try(JarpaArgs args = equals("--foo=bar")) {
 			assertThat(args.get(JarpaArg.string("-f").alias("--foo")), is("bar"));
 		}
 	}
 	
 	@Test
 	public void testErrorOnDoubleAliases() {
-		try(JarpaArgs args = jargs("--foo bar -f baz")) {
+		try(JarpaArgs args = spaced("--foo bar -f baz")) {
+			assertEquals(args.get(JarpaArg.string("-f").alias("--foo")), "bar");
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.MULTIPLE_ALIASES_PRESENT));
+		}
+		
+		try(JarpaArgs args = equals("--foo=bar -f=baz")) {
 			assertEquals(args.get(JarpaArg.string("-f").alias("--foo")), "bar");
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.MULTIPLE_ALIASES_PRESENT));
@@ -58,7 +85,13 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testErrorOnMultipleArgumentsWhenNotAllowed() {
-		try(JarpaArgs args = jargs("--arg value1 value2")) {
+		try(JarpaArgs args = spaced("--arg value1 value2")) {
+			args.get(string("--arg"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.SINGLE_VALUE_EXPECTED));
+		}
+		
+		try(JarpaArgs args = equals("--arg=value1,value2")) {
 			args.get(string("--arg"));
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.SINGLE_VALUE_EXPECTED));
@@ -67,7 +100,15 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testErrorOnMandatoryArgNotSpecified() {
-		try(JarpaArgs args = jargs("-f 1 --goo 2")) {
+		try(JarpaArgs args = spaced("-f 1 --goo 2")) {
+			args.get(integer("-f"));
+			args.get(integer("-g").alias("--goo"));
+			args.get(integer("-h"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.MANDATORY_ARG_NOT_SPECIFIED));
+		}
+		
+		try(JarpaArgs args = equals("-f=1 --goo=2")) {
 			args.get(integer("-f"));
 			args.get(integer("-g").alias("--goo"));
 			args.get(integer("-h"));
@@ -78,7 +119,14 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testErrorOnUnknownArguments() {
-		try(JarpaArgs args = jargs("-a 1 -b 2 -c 3 -d 4")) {
+		try(JarpaArgs args = spaced("-a 1 -b 2 -c 3 -d 4")) {
+			args.get(integer("-a"));
+			args.get(integer("-b"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
+		}
+		
+		try(JarpaArgs args = equals("-a=1 -b=2 -c=3 -d=4")) {
 			args.get(integer("-a"));
 			args.get(integer("-b"));
 		} catch(JarpaException e) {
@@ -88,7 +136,13 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testUnknownDefaultArgumentMessage() {
-		try(JarpaArgs args = jargs("arg")) {	
+		try(JarpaArgs args = spaced("arg")) {	
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
+			assertThat(e.getMessage(), is("Unknown argument [default argument]"));
+		}
+		
+		try(JarpaArgs args = equals("arg")) {	
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
 			assertThat(e.getMessage(), is("Unknown argument [default argument]"));
@@ -97,7 +151,13 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testParsingDifferentValues() {
-		try(JarpaArgs args = jargs("--int 356 --dec 2.65 --strings a b c")) {
+		try(JarpaArgs args = spaced("--int 356 --dec 2.65 --strings a b c")) {
+			assertThat(args.get(integer("--int")), is(356));
+			assertThat(args.get(decimal("--dec")), is(2.65));
+			assertThat(args.get(stringArray("--strings")), is(new String[] {"a", "b", "c"}));
+		}
+		
+		try(JarpaArgs args = equals("--int=356 --dec=2.65 --strings=a,b,c")) {
 			assertThat(args.get(integer("--int")), is(356));
 			assertThat(args.get(decimal("--dec")), is(2.65));
 			assertThat(args.get(stringArray("--strings")), is(new String[] {"a", "b", "c"}));
@@ -106,14 +166,24 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testNegativeDecimals() {
-		try(JarpaArgs args = jargs("-f -5.46")) {
+		try(JarpaArgs args = spaced("-f -5.46")) {
+			assertThat(args.get(decimal("-f")), is(-5.46));
+		}
+		
+		try(JarpaArgs args = equals("-f=-5.46")) {
 			assertThat(args.get(decimal("-f")), is(-5.46));
 		}
 	}
 	
 	@Test
 	public void testOwnExceptionOnParseError() {
-		try(JarpaArgs args = jargs("--int 646d")) {
+		try(JarpaArgs args = spaced("--int 646d")) {
+			args.get(integer("--int"));
+		} catch(JarpaException e) {
+			assertThat(e.type, is(Type.PARSE_EXCEPTION));
+		}
+		
+		try(JarpaArgs args = equals("--int=646d")) {
 			args.get(integer("--int"));
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.PARSE_EXCEPTION));
@@ -122,7 +192,7 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testAutoCloseableOnJarpaArgs() {
-		try(JarpaArgs args = jargs("-a -b")) {
+		try(JarpaArgs args = spaced("-a -b")) {
 			args.get(flag("-a"));
 		} catch(JarpaException e) {
 			assertThat(e.type, is(Type.UNKNOWN_ARGUMENTS));
@@ -131,9 +201,22 @@ public class TestJarpaParser {
 	
 	@Test
 	public void testObjectList() {
-		try(JarpaArgs args = jargs("--list 1 2 3")) {
+		try(JarpaArgs args = spaced("--list 1 2 3")) {
 			assertThat(args.get(objectList("--list", Dummy::parse)),
 					hasItems(new Dummy(1), new Dummy(2), new Dummy(3)));
+		}
+		
+		try(JarpaArgs args = equals("--list=1,2,3")) {
+			assertThat(args.get(objectList("--list", Dummy::parse)),
+					hasItems(new Dummy(1), new Dummy(2), new Dummy(3)));
+		}
+	}
+	
+	@Test
+	public void testDefaultArgsOnEqualsParser() {
+		try(JarpaArgs args = equals("def1 -a def2")) {
+			args.get(flag("-a"));
+			assertThat(args.get(stringList("")), hasItems("def1", "def2"));
 		}
 	}
 	

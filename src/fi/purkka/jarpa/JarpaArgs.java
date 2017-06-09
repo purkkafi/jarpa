@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * in its {@code close()} method to permit use in try-catch blocks.</p> */
 public class JarpaArgs implements AutoCloseable {
 	
-	private final static String[] EMPTY_ARRAY = new String[0];
+	final static String[] EMPTY_ARRAY = new String[0];
 	public final static String DEFAULT_ARGUMENT = "";
 	
 	final Map<String, String[]> values = new HashMap<>();
