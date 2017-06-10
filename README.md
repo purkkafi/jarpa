@@ -9,13 +9,13 @@ A lightweight parser of command line arguments.
 * Completely typesafe – handles parsing for you
 * Extensible in the previous regard
 
-## Examples
+## Quick Examples
 
 Note that the following examples use the static import `fi.purkka.jarpa.JarpaArg.*` to make the code shorter.
 
 Everything begins by obtaining a `JarpaArgs` instance; `args` is of type `String[]`. `JarpaArgs` implements `AutoCloseable` to permit use in try-catch blocks; the `close()` method calls `finish()` which makes sure that the user hasn't entered any unknown arguments.
 
-    try(JarpaArgs jargs = JarpaParser.parse(args)) {
+    try(JarpaArgs jargs = JarpaParser.parsing(args).parse()) {
         // code
     } catch(JarpaException e) {
         // handle errors
@@ -26,7 +26,7 @@ Everything begins by obtaining a `JarpaArgs` instance; `args` is of type `String
     String string = jargs.get(string("--name"));
     int integer = jargs.get(integer("--id"));
     double decimal = jargs.get(decimal("--weight"));
-    String[] strings = jargs.get(stringList("--versions"));
+    String[] strings = jargs.get(stringArray("--versions"));
 
 *Flags* are special types of `JarpaArg`. They are associated with a `boolean` value that indicates whether they are present. Unlike other types, they will not cause an exception to be thrown if missing).
 
