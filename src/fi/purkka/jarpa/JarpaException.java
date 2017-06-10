@@ -3,6 +3,8 @@ package fi.purkka.jarpa;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import fi.purkka.jarpa.conditions.Condition;
+
 /** Specifies that something went wrong in Jarpa code.*/
 public class JarpaException extends RuntimeException {
 
@@ -60,9 +62,22 @@ public class JarpaException extends RuntimeException {
 				+ ": " + t.getMessage());
 	}
 	
+	/** Indicates that both a flag and its negator were present. */
 	public static JarpaException flagAndNegatorPresent(String flag, String negator) {
 		return new JarpaException(Type.FLAG_AND_NEGATOR_PRESENT, "Both flag "
 				+ flag + " and its negator " + negator + " are present");
+	}
+	
+	/** Indicates that a condition is logically invalid. */
+	public static JarpaException invalidCondition(String condition, String reason) {
+		return new JarpaException(Type.INVALID_CONDITION, "Invalid condition '" + condition
+				+ "': " + reason);
+	}
+	
+	/** Indicates that a {@link Condition} was failed. */
+	public static JarpaException failedConditon(String argument, String failure) {
+		return new JarpaException(Type.CONDITION_FAILED, "Illegal value for " + argument
+				+ ": " + failure);
 	}
 	
 	static enum Type {
@@ -72,6 +87,8 @@ public class JarpaException extends RuntimeException {
 		MANDATORY_ARG_NOT_SPECIFIED,
 		UNKNOWN_ARGUMENTS,
 		FLAG_AND_NEGATOR_PRESENT,
+		CONDITION_FAILED,
+		INVALID_CONDITION,
 		PARSE_EXCEPTION
 	}
 }

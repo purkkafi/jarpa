@@ -24,8 +24,12 @@ public class TestJarpaParser {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void testNPEOnNullInput() {
+	public void testNPEOnNullInputSpaced() {
 		spaced(null);
+	}
+	
+	@Test(expected=NullPointerException.class)
+	public void testNPEOnNullInputEquals() {
 		equals(null);
 	}
 	

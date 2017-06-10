@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import fi.purkka.jarpa.ValueParser.SingleValueParser;
+import fi.purkka.jarpa.conditions.Condition;
 
 /** Represents a single argument that may optionally have some
  * <i>values</i> associated with it.
@@ -37,6 +38,7 @@ public abstract class JarpaArg<T> {
 	
 	List<String> aliases = new ArrayList<>();
 	final ValueParser<T> valParser;
+	private final List<Condition<T>> conditions = new ArrayList<>();
 	
 	private JarpaArg(String arg, ValueParser<T> valParser) {
 		aliases.add(arg);
@@ -67,6 +69,22 @@ public abstract class JarpaArg<T> {
 			this.aliases.add(alias);
 		}
 		return this;
+	}
+	
+	/** Adds a {@link Condition} that is verified to be true when
+	 * the value is returned or else an exception will be thrown. */
+	public JarpaArg<T> require(Condition<T> condition) {
+		conditions.add(condition);
+		return this;
+	}
+	
+	void verifyConditions(T value) {
+		for(Condition<T> condition : conditions) {
+			if(!(condition.predicate.test(value))) {
+				throw JarpaException.failedConditon(mainAlias(),
+						condition.message);
+			}
+		}
 	}
 	
 	/** Makes this argument <i>optional</i>, meaning that leaving it
@@ -168,7 +186,9 @@ public abstract class JarpaArg<T> {
 				throw JarpaException.mandatoryArgNotSpecified(mainAlias());
 			}
 			try {
-				return valParser.apply(args.getRaw(alias));
+				T val = valParser.apply(args.getRaw(alias));
+				verifyConditions(val);
+				return val;
 			} catch(JarpaException e) {
 				throw e;
 			} catch(Exception e) {
@@ -227,6 +247,7 @@ public abstract class JarpaArg<T> {
 				if(args.getRaw(alias).length != 0) {
 					throw JarpaException.flagGivenValues(alias);
 				}
+				verifyConditions(true);
 				return true;
 			}
 			
@@ -234,6 +255,7 @@ public abstract class JarpaArg<T> {
 				throw JarpaException.flagGivenValues(negator);
 			}
 			
+			verifyConditions(false);
 			return false;
 		}
 	}
@@ -249,8 +271,11 @@ public abstract class JarpaArg<T> {
 			args.addOptionalArgs(aliases);
 			String alias = args.usedAlias(aliases);
 			if(alias != null) {
-				return valParser.apply(args.getRaw(alias));
+				Optional<T> val = valParser.apply(args.getRaw(alias));
+				verifyConditions(val);
+				return val;
 			}
+			verifyConditions(Optional.empty());
 			return Optional.empty();
 		}
 	}

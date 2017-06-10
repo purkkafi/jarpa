@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-	TestJarpaParser.class
+	TestJarpaParser.class,
+	TestConditions.class
 })
 public class TestJarpa {}
